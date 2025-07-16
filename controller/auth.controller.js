@@ -18,6 +18,7 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     //Insert new user into the database
+    // 'RETURNING id' allows us to get the newly created user's ID as a newly inserted row
     const insertUserQuery = `
             INSERT INTO users (name, email, password_hash)
             VALUES ($1, $2, $3) RETURNING id;
@@ -27,14 +28,17 @@ exports.register = async (req, res) => {
       email,
       hashedPassword,
     ]);
+
+    // If the query was successful, result.rows will contain the new user's ID
     const userId = result.rows[0].id;
 
-    // 4. Generate JWT
+    // Generate JWT ( authentication token)
     const token = jwt.sign({ userId }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });
 
     res
+      // 201 tells us that its been succ created
       .status(201)
       .json({ message: "User registered successfully", token, userId });
   } catch (error) {
@@ -47,23 +51,23 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
-    // 1. Find user by email
     const findUserQuery =
       "SELECT id, password_hash FROM users WHERE email = $1";
     const result = await db.query(findUserQuery, [email]);
     const user = result.rows[0];
 
+    // If no user with that email exists
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // 2. Compare password
+    // If password doesn't match
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // 3. Generate JWT
+    //  JWT
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
       expiresIn: "1h",
     });

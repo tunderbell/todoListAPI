@@ -5,7 +5,7 @@ const { Pool } = require("pg");
 // imports the database configuration from config file
 const dbConfig = require("../config/db.config");
 
-// creates a new instance of Pool with my database config
+// creates a new instance with my database config
 const pool = new Pool(dbConfig);
 
 // handles connection errors
@@ -14,7 +14,7 @@ pool.on("error", (err) => {
   process.exit(-1);
 });
 
-// exports an object with a query method for executing SQL queries
+// exports query method for executing SQL queries
 module.exports = {
   query: (text, params) => pool.query(text, params),
   getClient: () => pool.connect(), // For transactions
