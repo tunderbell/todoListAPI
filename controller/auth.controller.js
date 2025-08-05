@@ -1,5 +1,5 @@
-const bycryotjs = require("bcryptjs");
-const jsonwebtoken = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const db = require("../database/index");
 
 exports.register = async (req, res) => {
@@ -15,18 +15,18 @@ exports.register = async (req, res) => {
     }
 
     //Hash passweord using imported bcryptjs library
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedpassword = await bcrypt.hash(password, 10);
 
     //Insert new user into the database
     // 'RETURNING id' allows us to get the newly created user's ID as a newly inserted row
     const insertUserQuery = `
-            INSERT INTO users (name, email, password_hash)
+            INSERT INTO users (name, email, hashedpassword)
             VALUES ($1, $2, $3) RETURNING id;
         `;
     const result = await db.query(insertUserQuery, [
       name,
       email,
-      hashedPassword,
+      hashedpassword,
     ]);
 
     // If the query was successful, result.rows will contain the new user's ID
@@ -52,7 +52,7 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
   try {
     const findUserQuery =
-      "SELECT id, password_hash FROM users WHERE email = $1";
+      "SELECT id, hashedpassword FROM users WHERE email = $1";
     const result = await db.query(findUserQuery, [email]);
     const user = result.rows[0];
 
@@ -62,7 +62,7 @@ exports.login = async (req, res) => {
     }
 
     // If password doesn't match
-    const isMatch = await bcrypt.compare(password, user.password_hash);
+    const isMatch = await bcrypt.compare(password, user.hashedpassword);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
