@@ -3,6 +3,7 @@
 # To-Do API with Authentication
 
 A **powerful and scalable RESTful API** for managing a user's to-do list, with **secure authentication** and **PostgreSQL data persistence**.
+Tested using POSTMAN
 
 ---
 
